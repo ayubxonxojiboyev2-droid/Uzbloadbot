@@ -394,7 +394,7 @@ async def process_stars_invoice(call: CallbackQuery):
     await bot.send_invoice(
         chat_id=call.message.chat.id,
         title=f"Подписка на {months} мес.",
-        description=f"Telegram Business chat bot boshqaruvi ({months} oy uchun)",
+        description=f"Telegram Business chat bot boshqaruvi ({months} oy учун)",
         payload=f"sub_{months}_{stars}",
         currency="XTR",
         prices=prices,
@@ -600,15 +600,9 @@ async def track_edited_business_message(message: Message):
     )
     
     try:
-        editor_id = message.from_user.id
-        if editor_id == owner_id:
-            target_chat = message.chat.id
-        else:
-            target_chat = owner_id
-            
-        await bot.send_message(chat_id=target_chat, text=notify_text, parse_mode="HTML")
-    except Exception:
-        pass
+        await bot.send_message(chat_id=owner_id, text=notify_text, parse_mode="HTML")
+    except Exception as e:
+        logging.error(f"Error sending edit notice: {e}")
 
 
 @dp.deleted_business_messages()
@@ -634,20 +628,15 @@ async def track_deleted_business_messages(event: types.BusinessMessagesDeleted):
                     f"Имя: {name} | Юзернейм: @{username if username else 'yoq'} | ID: <code>{uid}</code>"
                 )
                 try:
-                    if uid == owner_id:
-                        target_chat = chat_id
-                    else:
-                        target_chat = owner_id
-                        
                     if file_id:
                         if c_type == ContentType.PHOTO:
-                            await bot.send_photo(chat_id=target_chat, photo=file_id, caption=report, parse_mode="HTML")
+                            await bot.send_photo(chat_id=owner_id, photo=file_id, caption=report, parse_mode="HTML")
                         elif c_type == ContentType.VIDEO:
-                            await bot.send_video(chat_id=target_chat, video=file_id, caption=report, parse_mode="HTML")
+                            await bot.send_video(chat_id=owner_id, video=file_id, caption=report, parse_mode="HTML")
                         elif c_type == ContentType.VOICE:
-                            await bot.send_voice(chat_id=target_chat, voice=file_id, caption=report, parse_mode="HTML")
+                            await bot.send_voice(chat_id=owner_id, voice=file_id, caption=report, parse_mode="HTML")
                     else:
-                        await bot.send_message(chat_id=target_chat, text=report, parse_mode="HTML")
+                        await bot.send_message(chat_id=owner_id, text=report, parse_mode="HTML")
                 except Exception as e:
                     logging.error(f"Error notifying delete: {e}")
 
