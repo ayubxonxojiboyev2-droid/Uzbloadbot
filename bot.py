@@ -22,8 +22,8 @@ from aiogram.types import (
 )
 
 # ================= CONFIGURATION =================
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-ADMIN_SECRET = os.environ.get("ADMIN_SECRET")
+BOT_TOKEN = os.environ.get("8640036196:AAFJMQcClr754GmYjkuygNt85TF8eGGfig8")
+ADMIN_SECRET = os.environ.get("ayubxon293929")
 DB_PATH = "bot_database.db"
 
 if not BOT_TOKEN:
