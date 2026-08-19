@@ -943,4 +943,9 @@ async def start_web_server():
 async def main():
     await start_web_server()  # Portni birinchi navbatda ochamiz, Render tezroq "live" deb bilsin
     await init_db()
-    asyncio
+    asyncio.create_task(check_subscriptions_task())
+    asyncio.create_task(keep_awake_task())
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
