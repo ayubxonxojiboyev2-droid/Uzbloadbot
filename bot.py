@@ -202,14 +202,13 @@ async def check_subscriptions_task():
         await asyncio.sleep(3600)
 
 async def keep_awake_task():
-    # Render avtomatik RENDER_EXTERNAL_URL beradi (masalan https://sizning-bot.onrender.com)
     external_url = os.environ.get("RENDER_EXTERNAL_URL")
     if not external_url:
         logging.warning("RENDER_EXTERNAL_URL topilmadi, keep_awake_task o'chirilgan.")
         return
 
     while True:
-        await asyncio.sleep(600)  # 10 daqiqada bir marta (Render 15 daq harakatsizlikdan keyin uxlatadi)
+        await asyncio.sleep(600)  # 10 daqiqada bir marta
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"{external_url}/health", timeout=aiohttp.ClientTimeout(total=15)) as response:
@@ -394,7 +393,7 @@ async def process_stars_invoice(call: CallbackQuery):
     await bot.send_invoice(
         chat_id=call.message.chat.id,
         title=f"Подписка на {months} мес.",
-        description=f"Telegram Business chat bot boshqaruvi ({months} oy учун)",
+        description=f"Telegram Business chat bot boshqaruvi ({months} oy uchun)",
         payload=f"sub_{months}_{stars}",
         currency="XTR",
         prices=prices,
@@ -582,6 +581,10 @@ async def track_edited_business_message(message: Message):
     if owner_id is None:
         return
 
+    # Agar obuna egasi o'zi xabarini tahrirlasa, o'ziga qaytarib yubormaymiz
+    if message.from_user.id == owner_id:
+        return
+
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute('''
             SELECT text_content FROM messages_cache 
@@ -600,6 +603,7 @@ async def track_edited_business_message(message: Message):
     )
     
     try:
+        # Faqat obuna egasiga boradi (faqat boshqa odam tahrirlaganda)
         await bot.send_message(chat_id=owner_id, text=notify_text, parse_mode="HTML")
     except Exception as e:
         logging.error(f"Error sending edit notice: {e}")
@@ -622,6 +626,11 @@ async def track_deleted_business_messages(event: types.BusinessMessagesDeleted):
 
             if row:
                 name, username, uid, c_type, text, file_id, chat_id = row
+                
+                # Agar obuna egasi o'zi yozgan xabarni o'chirsa, o'ziga qaytarib yubormaymiz
+                if uid == owner_id:
+                    continue
+
                 report = (
                     "🗑 <b>замечено удаление!</b>\n\n"
                     f'сообщение: "{text if text else "[" + c_type + "]"}"\n\n'
@@ -934,9 +943,4 @@ async def start_web_server():
 async def main():
     await start_web_server()  # Portni birinchi navbatda ochamiz, Render tezroq "live" deb bilsin
     await init_db()
-    asyncio.create_task(check_subscriptions_task())
-    asyncio.create_task(keep_awake_task())
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio
